@@ -1,0 +1,14 @@
+# To really understand GraphQL, go to https://graphql.org/learn/
+
+type CatalogSync {
+  success: Boolean
+}
+
+type Query {
+    hello: String
+}
+
+type Mutation {
+  # You should always return the whole object in a mutation, not only a boolean. This will help in browser caching
+  catalogSync: CatalogSync
+}

@@ -1,0 +1,103 @@
+{
+  "name": "evve-integration",
+  "vendor": "vtex",
+  "version": "0.2.2",
+  "title": "evve-integration",
+  "description": "evve-integration",
+  "categories": [],
+  "dependencies": {
+    "vtex.catalog-graphql": "1.x"
+  },
+  "builders": {
+    "node": "6.x",
+    "docs": "0.x",
+    "graphql": "1.x"
+  },
+  "scripts": {
+    "prereleasy": "bash lint.sh"
+  },
+  "credentialType": "absolute",
+  "policies": [
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "*",
+        "path": "*"
+      }
+    },
+    {
+      "name": "outbound-access-2",
+      "attrs": {
+        "host": "{{account}}.vtexcommercestable.com.br",
+        "path": "/api/catalog_system/*"
+      }
+    },
+    {
+      "name": "colossus-fire-event"
+    },
+    {
+      "name": "colossus-write-logs"
+    },
+    {
+      "name": "OMSViewer"
+    },
+    {
+      "name": "Sku.aspx"
+    },
+    {
+      "name": "Marca.aspx"
+    },
+    {
+      "name": "ManterFormularioProdutoSku"
+    },
+    {
+      "name": "ProdutoForm.aspx"
+    },
+    {
+      "name": "Produto.aspx"
+    },
+    {
+      "name": "suggestions"
+    },
+    {
+      "name": "POWER_USER_DS"
+    },
+    {
+      "name": "ADMIN_DS"
+    },
+    {
+      "name": "vbase-read-write"
+    },
+    {
+      "name": "Get_Users_Paged"
+    },
+    {
+      "name": "graphql-query"
+    },
+    {
+      "name": "AcessaTodosCarrinhos"
+    },
+    {
+      "name": "view-seller"
+    },
+    {
+      "name": "AlterarPrecoSku"
+    },
+    {
+      "name": "ManterFormularioProdutoSku"
+    },
+    {
+      "name": "vtex.catalog-graphql:resolve-graphql"
+    }
+  ],
+  "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema",
+  "billingOptions": {
+    "type": "free",
+    "support": {
+      "url": "https://evve.co"
+    },
+    "availableCountries": [
+      "*"
+    ]
+  }
+}
