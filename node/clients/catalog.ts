@@ -142,6 +142,17 @@ import {
    
     }
 
+    public async getImagesBySku(id:number){
+        return this.http.get(`/api/catalog/pvt/stockkeepingunit/id/file`,{
+            metric: "getImagesBySku",
+            headers: {
+              "X-VTEX-Use-Https": true,
+              "VtexIdclientAutCookie": this.context.adminUserAuthToken
+            },
+          })
+   
+    }
+
     public async getProduct(id:number): Promise<Product>{
         return this.http.get(`/api/catalog/pvt/product/${id}`,{
             metric: "getproduct",
