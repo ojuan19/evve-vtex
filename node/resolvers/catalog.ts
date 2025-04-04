@@ -8,7 +8,7 @@ interface ProductSkus {
 
 export const catalogSync = async (
     _: any,
-    payload: any,
+    _payload: any,
     ctx: Context
   ) => {
     const { clients } = ctx
@@ -22,10 +22,11 @@ export const catalogSync = async (
         
         // Process products in batches to avoid overwhelming the API
         const batchSize = 10;
-        for (let i = 0; i < productIds.length; i += batchSize) {
+        for (let i = 0; i < 10; i += batchSize) {
+        // for (let i = 0; i < productIds.length; i += batchSize) {
             const batch = productIds.slice(i, i + batchSize);
             console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productIds.length - 1)}`);
-            
+            console.log(`Batch  ${batch}`)
             // Process each product in the batch concurrently
             const batchResults = await Promise.all(
                 batch.map(async (productId) => {
@@ -39,7 +40,7 @@ export const catalogSync = async (
                         console.log(`Product ${productId}: Found ${skus.length} SKUs`);
                         return { productId, productData, skus };
                     } catch (error) {
-                        console.error(`Error fetching SKUs for product ${productId}:`, error);
+                        // console.error(`Error fetching SKUs for product ${productId}:`, error);
                         return { productId, productData: null, skus: [] };
                     }
                 })
