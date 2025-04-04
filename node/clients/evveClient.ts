@@ -13,17 +13,17 @@ import {
     order: any
   }
   
-  interface ProductAttribute {
+  export interface ProductAttribute {
     name: string;
     value: string;
   }
-  
-  interface ProductImage {
+
+  export interface ProductImage {
     url: string;
     alt: string;
   }
-  
-  interface ProductVariant {
+
+  export interface ProductVariant {
     code: number;
     name: string;
     price: number;
@@ -31,7 +31,7 @@ import {
     attributes?: ProductAttribute[];
     images?: ProductImage[];
   }
-  
+
   export interface ProductPayload {
     code: number;
     name: string;
