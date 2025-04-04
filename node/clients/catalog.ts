@@ -111,6 +111,18 @@ import {
     basePrice: number;
     fixedPrices: FixedPrice[];
   }
+
+  export interface SkuImage {
+    Id: number;
+    ArchiveId: number;
+    SkuId: number;
+    Name: string;
+    IsMain: boolean;
+    Text: string | null;
+    Label: string;
+    Url: string | null;
+    FileLocation: string;
+  }
   
   export class CatalogClient extends ExternalClient {
     constructor(ctx: IOContext, options?: InstanceOptions) {
@@ -142,8 +154,8 @@ import {
    
     }
 
-    public async getImagesBySku(id:number){
-        return this.http.get(`/api/catalog/pvt/stockkeepingunit/id/file`,{
+    public async getImagesBySku(id:number): Promise<SkuImage[]>{
+        return this.http.get(`/api/catalog/pvt/stockkeepingunit/${id}/file`,{
             metric: "getImagesBySku",
             headers: {
               "X-VTEX-Use-Https": true,
