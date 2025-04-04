@@ -8,9 +8,37 @@ import {
   interface EvvePayload {
     platform: string
   }
+  
   interface OrderPayload extends EvvePayload{
     order: any
+  }
   
+  interface ProductAttribute {
+    name: string;
+    value: string;
+  }
+  
+  interface ProductImage {
+    url: string;
+    alt: string;
+  }
+  
+  interface ProductVariant {
+    code: number;
+    name: string;
+    price: number;
+    stock: number;
+    attributes?: ProductAttribute[];
+    images?: ProductImage[];
+  }
+  
+  export interface ProductPayload {
+    code: number;
+    name: string;
+    brand_name: string;
+    short_description: string;
+    detailed_description: string;
+    variants: ProductVariant[];
   }
   
   const EVVE_BASE_URL = () =>
@@ -36,13 +64,13 @@ import {
         body: order,
       });
     }
-    public async saveProductAndVariants(order: any){
+    public async saveProductAndVariants(product: ProductPayload): Promise<IOResponse<void>>{
       return this.http.post(`api/products`, {
         metric: "saveProductAndVariants",
         headers: {
           "X-VTEX-Use-Https": true,
         },
-        body: order,
+        body: product,
       });
     }
   }
