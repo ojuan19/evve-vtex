@@ -29,7 +29,7 @@ export const catalogSync = async (
         
         for (let i = 0; i < productIds.length; i += batchSize) {
             const batch = productIds.slice(i, i + batchSize);
-            console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productsToProcess.length - 1)}`);
+            console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productIds.length - 1)}`);
             
             // Process each product in the batch concurrently
             const batchResults = await Promise.all(
