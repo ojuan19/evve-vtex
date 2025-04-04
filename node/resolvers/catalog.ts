@@ -16,31 +16,49 @@ export const catalogSync = async (
     
     try {
         console.log("Starting catalog sync process");
-        // Get all product IDs
-        const productIds = await clients.catalogEvve.getProductsIds();
+        
+        // Get all product IDs and their associated SKU IDs
+        console.log("Fetching all product and SKU IDs...");
+        const productSkuMap = await clients.catalogEvve.getAllProductsAndSkuIds();
+        const productIds = Object.keys(productSkuMap).map(id => parseInt(id, 10));
+        
         console.log(`Retrieved ${productIds.length} product IDs`);
         
         // Process products in batches to avoid overwhelming the API
         const batchSize = 10;
-        for (let i = 0; i < 10; i += batchSize) {
-        // for (let i = 0; i < productIds.length; i += batchSize) {
-            const batch = productIds.slice(i, i + batchSize);
-            console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productIds.length - 1)}`);
-            console.log(`Batch  ${batch}`)
+        // Limit to first 10 products for testing
+        const productsToProcess = productIds.slice(0, 10);
+        
+        for (let i = 0; i < productsToProcess.length; i += batchSize) {
+            const batch = productsToProcess.slice(i, i + batchSize);
+            console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productsToProcess.length - 1)}`);
+            
             // Process each product in the batch concurrently
             const batchResults = await Promise.all(
                 batch.map(async (productId) => {
                     try {
-                        // Get both product data and SKUs concurrently
-                        const [productData, skus] = await Promise.all([
-                            clients.catalogEvve.getProduct(productId),
-                            clients.catalogEvve.getSkusByProduct(productId)
-                        ]);
+                        // Get product data
+                        const productData = await clients.catalogEvve.getProduct(productId);
+                        
+                        // Get SKUs for this product from our map
+                        const skuIds = productSkuMap[productId.toString()] || [];
+                        
+                        // If there are SKUs, fetch their details
+                        let skus: Sku[] = [];
+                        if (skuIds.length > 0) {
+                            // Option 1: Use existing getSkusByProduct which gets all SKUs at once
+                            skus = await clients.catalogEvve.getSkusByProduct(productId);
+                            
+                            // Option 2: Fetch each SKU individually if needed
+                            // skus = await Promise.all(
+                            //     skuIds.map(skuId => clients.catalogEvve.getSku(skuId))
+                            // );
+                        }
                         
                         console.log(`Product ${productId}: Found ${skus.length} SKUs`);
                         return { productId, productData, skus };
                     } catch (error) {
-                        // console.error(`Error fetching SKUs for product ${productId}:`, error);
+                        console.error(`Error processing product ${productId}:`, error);
                         return { productId, productData: null, skus: [] };
                     }
                 })

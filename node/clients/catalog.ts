@@ -128,13 +128,37 @@ import {
           })
     }
   
-    public async getProductsIds(): Promise<number[]> {
+    public async getSkuIds(): Promise<number[]> {
       return this.http.get(`/api/catalog_system/pvt/sku/stockkeepingunitids?page=1&pageSize=500000`, {
-        metric: "getProductsIds",
+        metric: "getSkuIds",
         headers: {
           "X-VTEX-Use-Https": true,
           "VtexIdclientAutCookie": this.context.adminUserAuthToken
         },
       })
+    }
+
+    public async getAllProductsAndSkuIds(): Promise<ProductSkuIdsMap> {
+      const pageSize = 250; // Maximum allowed by the API
+      let from = 1;
+      let allData: ProductSkuIdsMap = {};
+      let hasMoreData = true;
+
+      while (hasMoreData) {
+        const to = from + pageSize - 1;
+        const response = await this.getProductAndSkuIds(from, to);
+        
+        // Merge the data from this page with our accumulated data
+        allData = { ...allData, ...response.data };
+        
+        // Check if we've reached the end
+        if (response.range.to >= response.range.total) {
+          hasMoreData = false;
+        } else {
+          from = response.range.to + 1;
+        }
+      }
+
+      return allData;
     }
   }
