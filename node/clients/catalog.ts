@@ -93,6 +93,16 @@ import {
           })
     }
 
+    public async getProductAndSkuIds(from:number,to:number): Promise<Sku[]>{
+        return this.http.get(`/api/catalog_system/pvt/products/GetProductAndSkuIds?_from=${from}&_to=${to}`,{
+            metric: "getSkusByProduct",
+            headers: {
+              "X-VTEX-Use-Https": true,
+              "VtexIdclientAutCookie": this.context.adminUserAuthToken
+            },
+          })
+    }
+
     public async getSku(id:number): Promise<any>{
         return this.http.get(`/api/catalog/pvt/product/${id}`,{
             metric: "getproduct",
