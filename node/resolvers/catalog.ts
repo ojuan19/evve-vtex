@@ -1,4 +1,4 @@
-import { Product, Sku, SkuImage } from "../clients/catalog";
+import { Product, Sku } from "../clients/catalog";
 import { ProductAttribute, ProductImage, ProductPayload, ProductVariant } from "../clients/evveClient";
 
 interface SkuWithInventory {
@@ -222,7 +222,8 @@ export const catalogSync = async (
           try {
             const evveProduct = convertToEvveFormat(productData);
             if (evveProduct) {
-              await clients.evve.saveProductAndVariants(evveProduct);
+            console.log(`Sending product ${JSON.stringify(evveProduct)} `)
+            //   await clients.evve.saveProductAndVariants(evveProduct);
               syncedWithEvve.push(productData.productId);
               console.log(`Successfully synced product ${productData.productId} with Evve`);
             }
