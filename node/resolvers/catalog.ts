@@ -1,9 +1,10 @@
-import { Product, Sku } from "../clients/catalog";
+import { Product, Sku, SkuImage } from "../clients/catalog";
 
 interface SkuWithInventory {
   sku: Sku;
   totalInventory: number;
   costPrice: number | null;
+  imageUrls: string[];
 }
 
 interface ProductSkus {
@@ -58,10 +59,11 @@ export const catalogSync = async (
                             skusWithInventory = await Promise.all(
                                 skus.map(async (sku) => {
                                     try {
-                                        // Get inventory data and price data for this SKU concurrently
-                                        const [inventory, price] = await Promise.all([
+                                        // Get inventory data, price data, and images for this SKU concurrently
+                                        const [inventory, price, images] = await Promise.all([
                                             clients.catalogEvve.listInventoryBySku(sku.Id),
-                                            clients.catalogEvve.getPriceBySku(sku.Id)
+                                            clients.catalogEvve.getPriceBySku(sku.Id),
+                                            clients.catalogEvve.getImagesBySku(sku.Id)
                                         ]);
                                         
                                         // Calculate total inventory across all warehouses
@@ -70,17 +72,25 @@ export const catalogSync = async (
                                             0
                                         );
                                         
+                                        // Transform image URLs to the required format
+                                        const accountName = ctx.vtex.account;
+                                        const imageUrls = images.map(image => 
+                                            `https://${accountName}.${image.FileLocation}`
+                                        );
+                                        
                                         return {
                                             sku,
                                             totalInventory,
-                                            costPrice: price ? price.costPrice : null
+                                            costPrice: price ? price.costPrice : null,
+                                            imageUrls
                                         };
                                     } catch (error) {
                                         console.error(`Error fetching inventory for SKU ${sku.Id}:`, error);
                                         return {
                                             sku,
                                             totalInventory: 0,
-                                            costPrice: null
+                                            costPrice: null,
+                                            imageUrls: []
                                         };
                                     }
                                 })
@@ -123,6 +133,16 @@ export const catalogSync = async (
             : 0;
         
         console.log(`Average cost price across ${skusWithPrice.length} SKUs: ${averageCostPrice.toFixed(2)}`);
+        
+        // Count and log total images across all SKUs
+        const totalImages = allProductSkus.reduce(
+            (sum, product) => sum + product.skus.reduce(
+                (skuSum, skuWithInventory) => skuSum + skuWithInventory.imageUrls.length, 
+                0
+            ), 
+            0
+        );
+        console.log(`Total images across all SKUs: ${totalImages}`);
         
         // Log some sample product data for verification
         if (allProductSkus.length > 0) {
