@@ -3,7 +3,7 @@ import { Product, Sku, SkuPrice } from "../clients/catalog";
 interface SkuWithInventory {
   sku: Sku;
   totalInventory: number;
-  price: SkuPrice | null;
+  costPrice: number | null;
 }
 
 interface ProductSkus {
@@ -73,14 +73,14 @@ export const catalogSync = async (
                                         return {
                                             sku,
                                             totalInventory,
-                                            price
+                                            costPrice: price ? price.costPrice : null
                                         };
                                     } catch (error) {
                                         console.error(`Error fetching inventory for SKU ${sku.Id}:`, error);
                                         return {
                                             sku,
                                             totalInventory: 0,
-                                            price: null
+                                            costPrice: null
                                         };
                                     }
                                 })
@@ -110,19 +110,19 @@ export const catalogSync = async (
             0
         )}`);
         
-        // Calculate and log average base price across all SKUs with price data
+        // Calculate and log average cost price across all SKUs with price data
         const skusWithPrice = allProductSkus.flatMap(product => 
-            product.skus.filter(skuData => skuData.price !== null)
+            product.skus.filter(skuData => skuData.costPrice !== null)
         );
-        const totalBasePrice = skusWithPrice.reduce(
-            (sum, skuData) => sum + (skuData.price?.basePrice || 0), 
+        const totalCostPrice = skusWithPrice.reduce(
+            (sum, skuData) => sum + (skuData.costPrice || 0), 
             0
         );
-        const averageBasePrice = skusWithPrice.length > 0 
-            ? totalBasePrice / skusWithPrice.length 
+        const averageCostPrice = skusWithPrice.length > 0 
+            ? totalCostPrice / skusWithPrice.length 
             : 0;
         
-        console.log(`Average base price across ${skusWithPrice.length} SKUs: ${averageBasePrice.toFixed(2)}`);
+        console.log(`Average cost price across ${skusWithPrice.length} SKUs: ${averageCostPrice.toFixed(2)}`);
         
         // Log some sample product data for verification
         if (allProductSkus.length > 0) {
