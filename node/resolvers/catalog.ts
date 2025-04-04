@@ -2,7 +2,6 @@ import { Product, Sku, SkuInventory } from "../clients/catalog";
 
 interface SkuWithInventory {
   sku: Sku;
-  inventory: SkuInventory | null;
   totalInventory: number;
 }
 
@@ -69,14 +68,12 @@ export const catalogSync = async (
                                         
                                         return {
                                             sku,
-                                            inventory,
                                             totalInventory
                                         };
                                     } catch (error) {
                                         console.error(`Error fetching inventory for SKU ${sku.Id}:`, error);
                                         return {
                                             sku,
-                                            inventory: null,
                                             totalInventory: 0
                                         };
                                     }
