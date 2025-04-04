@@ -40,7 +40,7 @@ export const catalogSync = async (
                         return { productId, productData, skus };
                     } catch (error) {
                         console.error(`Error fetching SKUs for product ${productId}:`, error);
-                        return { productId, skus: [] };
+                        return { productId, productData: null, skus: [] };
                     }
                 })
             );
