@@ -1,8 +1,9 @@
-import { Product, Sku } from "../clients/catalog";
+import { Product, Sku, SkuPrice } from "../clients/catalog";
 
 interface SkuWithInventory {
   sku: Sku;
   totalInventory: number;
+  price: SkuPrice | null;
 }
 
 interface ProductSkus {
@@ -57,8 +58,11 @@ export const catalogSync = async (
                             skusWithInventory = await Promise.all(
                                 skus.map(async (sku) => {
                                     try {
-                                        // Get inventory data for this SKU
-                                        const inventory = await clients.catalogEvve.listInventoryBySku(sku.Id);
+                                        // Get inventory data and price data for this SKU concurrently
+                                        const [inventory, price] = await Promise.all([
+                                            clients.catalogEvve.listInventoryBySku(sku.Id),
+                                            clients.catalogEvve.getPriceBySku(sku.Id)
+                                        ]);
                                         
                                         // Calculate total inventory across all warehouses
                                         const totalInventory = inventory.balance.reduce(
@@ -68,13 +72,15 @@ export const catalogSync = async (
                                         
                                         return {
                                             sku,
-                                            totalInventory
+                                            totalInventory,
+                                            price
                                         };
                                     } catch (error) {
                                         console.error(`Error fetching inventory for SKU ${sku.Id}:`, error);
                                         return {
                                             sku,
-                                            totalInventory: 0
+                                            totalInventory: 0,
+                                            price: null
                                         };
                                     }
                                 })
@@ -103,6 +109,20 @@ export const catalogSync = async (
             ), 
             0
         )}`);
+        
+        // Calculate and log average base price across all SKUs with price data
+        const skusWithPrice = allProductSkus.flatMap(product => 
+            product.skus.filter(skuData => skuData.price !== null)
+        );
+        const totalBasePrice = skusWithPrice.reduce(
+            (sum, skuData) => sum + (skuData.price?.basePrice || 0), 
+            0
+        );
+        const averageBasePrice = skusWithPrice.length > 0 
+            ? totalBasePrice / skusWithPrice.length 
+            : 0;
+        
+        console.log(`Average base price across ${skusWithPrice.length} SKUs: ${averageBasePrice.toFixed(2)}`);
         
         // Log some sample product data for verification
         if (allProductSkus.length > 0) {
