@@ -26,13 +26,6 @@
       }
     },
     {
-      "name": "outbound-access-2",
-      "attrs": {
-        "host": "{{account}}.vtexcommercestable.com.br",
-        "path": "/api/catalog_system/*"
-      }
-    },
-    {
       "name": "colossus-fire-event"
     },
     {

@@ -48,7 +48,7 @@ const fetchSkuDetails = async (sku: Sku, clients: Context['clients'], accountNam
       0
     );
   } catch (error) {
-    console.error(`Error fetching inventory for SKU ${sku.Id}:`, error);
+    console.error(`Error fetching inventory for SKU ${sku.Id}:`);
     // Continue with default inventory value
   }
 
@@ -57,7 +57,7 @@ const fetchSkuDetails = async (sku: Sku, clients: Context['clients'], accountNam
     const price = await clients.catalogEvve.getPriceBySku(sku.Id);
     costPrice = price ? price.costPrice : null;
   } catch (error) {
-    console.error(`Error fetching price for SKU ${sku.Id}:`, error);
+    console.error(`Error fetching price for SKU ${sku.Id}:`);
     // Continue with default price value
   }
 
@@ -68,7 +68,7 @@ const fetchSkuDetails = async (sku: Sku, clients: Context['clients'], accountNam
       `https://${accountName}.${image.FileLocation}`
     );
   } catch (error) {
-    console.error(`Error fetching images for SKU ${sku.Id}:`, error);
+    console.error(`Error fetching images for SKU ${sku.Id}:`);
     // Continue with default empty images array
   }
   
@@ -91,7 +91,7 @@ const processProduct = async (productId: number, skuIds: number[], clients: Cont
   try {
     productData = await clients.catalogEvve.getProduct(productId);
   } catch (error) {
-    console.error(`Error fetching product data for ${productId}:`, error);
+    console.error(`Error fetching product data for ${productId}:`);
     // Continue with null product data
   }
   
@@ -251,7 +251,7 @@ export const catalogSync = async (
     // Uncomment for production use
     // for (let i = 0; i < productIds.length; i += batchSize) {
     // For testing, limit to first 10 products
-    for (let i = 0; i < Math.min(10, productIds.length); i += batchSize) {
+    for (let i = 0; i < productIds.length; i += batchSize) {
       const batch = productIds.slice(i, i + batchSize);
       console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productIds.length - 1)}`);
       
@@ -275,10 +275,12 @@ export const catalogSync = async (
               console.log(`Sending product ${productData.productId} to Evve`);
               try {
                 await clients.evve.saveProductAndVariants(evveProduct);
+                console.log(`EVVE PRODUCT ${JSON.stringify(evveProduct)}`)
                 syncedWithEvve.push(productData.productId);
                 console.log(`Successfully synced product ${productData.productId} with Evve`);
               } catch (evveError) {
-                console.error(`Error sending product ${productData.productId} to Evve API:`, evveError);
+                console.error(`Error sending product ${productData.productId} to Evve API:`);
+                console.error(evveError)
                 // Continue with next product
               }
             }
