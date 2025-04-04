@@ -40,6 +40,30 @@ import {
     ModalType: string;
     isKitOptimized: boolean;
   }
+
+  export interface Product {
+    Id: number;
+    Name: string;
+    DepartmentId: number;
+    CategoryId: number;
+    BrandId: number;
+    LinkId: string;
+    RefId: string;
+    IsVisible: boolean;
+    Description: string | null;
+    DescriptionShort: string | null;
+    ReleaseDate: string;
+    KeyWords: string | null;
+    Title: string;
+    IsActive: boolean;
+    TaxCode: string;
+    MetaTagDescription: string;
+    SupplierId: number | null;
+    ShowWithoutStock: boolean;
+    AdWordsRemarketingCode: string | null;
+    LomadeeCampaignCode: string | null;
+    Score: number | null;
+  }
   
   export class CatalogClient extends ExternalClient {
     constructor(ctx: IOContext, options?: InstanceOptions) {
@@ -49,7 +73,7 @@ import {
         })
       }
 
-    public async getProduct(id:number): Promise<any>{
+    public async getProduct(id:number): Promise<Product>{
         return this.http.get(`/api/catalog/pvt/product/${id}`,{
             metric: "getproduct",
             headers: {

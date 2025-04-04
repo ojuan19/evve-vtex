@@ -1,8 +1,8 @@
-import { Sku } from "../clients/catalog";
+import { Product, Sku } from "../clients/catalog";
 
 interface ProductSkus {
   productId: number;
-  productData: any; // Store the product data
+  productData: Product | null;
   skus: Sku[];
 }
 
