@@ -26,11 +26,9 @@ export const catalogSync = async (
         
         // Process products in batches to avoid overwhelming the API
         const batchSize = 10;
-        // Limit to first 10 products for testing
-        const productsToProcess = productIds.slice(0, 10);
         
-        for (let i = 0; i < productsToProcess.length; i += batchSize) {
-            const batch = productsToProcess.slice(i, i + batchSize);
+        for (let i = 0; i < productIds.length; i += batchSize) {
+            const batch = productIds.slice(i, i + batchSize);
             console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productsToProcess.length - 1)}`);
             
             // Process each product in the batch concurrently
