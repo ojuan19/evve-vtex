@@ -95,6 +95,22 @@ import {
     skuId: string;
     balance: WarehouseInventory[];
   }
+
+  export interface FixedPrice {
+    tradePolicyId: string;
+    value: number;
+    listPrice: number | null;
+    minQuantity: number;
+  }
+
+  export interface SkuPrice {
+    itemId: string;
+    listPrice: number | null;
+    costPrice: number;
+    markup: number;
+    basePrice: number;
+    fixedPrices: FixedPrice[];
+  }
   
   export class CatalogClient extends ExternalClient {
     constructor(ctx: IOContext, options?: InstanceOptions) {
@@ -115,7 +131,7 @@ import {
    
     }
 
-    public async getPriceBySku(id:number){
+    public async getPriceBySku(id:number): Promise<SkuPrice>{
         return this.http.get(`/api/pricing/prices/${id}`,{
             metric: "getPriceBySku",
             headers: {
