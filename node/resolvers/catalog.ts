@@ -13,7 +13,7 @@ export const catalogSync = async (
         // const productResult = await catalogGraphQL.sku(1661366)
         // console.log(`My Product ${(JSON.stringify(productResult))}`)
         console.log("HEY YO")
-        const result =await clients.catalogEvve.getAllProductsAndSkus() 
+        const result =await clients.catalogEvve.getProductsIds()
         console.log(`My Result ${(JSON.stringify(result))}`)
     } catch (error) {
         console.log(`Error ${error}`)
