@@ -119,7 +119,7 @@ import {
     }
 
     public async getSku(id:number): Promise<any>{
-        return this.http.get(`/api/catalog/pvt/product/${id}`,{
+        return this.http.get(`/api/catalog/pvt/stockkeepingunit/${id}`,{
             metric: "getproduct",
             headers: {
               "X-VTEX-Use-Https": true,
