@@ -4,14 +4,6 @@ import {
     IOContext,
   } from "@vtex/api";
   
-  export interface ProductsAndSkusResponse {
-    data: Record<string, number[]>;
-    range: {
-      total: number;
-      from: number;
-      to: number;
-    };
-  }
   
   export class CatalogClient extends ExternalClient {
     constructor(ctx: IOContext, options?: InstanceOptions) {
@@ -51,36 +43,13 @@ import {
           })
     }
   
-    public async getProductsAndSkus(from: number, to: number): Promise<ProductsAndSkusResponse> {
-      return this.http.get(`/api/catalog_system/pvt/products/GetProductAndSkuIds?_from=${from}&_to=${to}`, {
-        metric: "getProductsAndSkus",
+    public async getProductsIds(): Promise<number[]> {
+      return this.http.get(`/api/catalog_system/pvt/sku/stockkeepingunitids?page=1&pageSize=500000`, {
+        metric: "getProductsIds",
         headers: {
           "X-VTEX-Use-Https": true,
           "VtexIdclientAutCookie": this.context.adminUserAuthToken
         },
       })
-    }
-    
-    public async getAllProductsAndSkus(): Promise<Record<string, number[]>> {
-      const pageSize = 250
-      let from = 1
-      let to = pageSize
-      let allProducts: Record<string, number[]> = {}
-      
-      // First request to get total and first batch
-      const firstResponse = await this.getProductsAndSkus(from, to)
-      const total = firstResponse.range.total
-      allProducts = { ...firstResponse.data }
-      
-      // Continue fetching if there are more products
-      while (to < total) {
-        from = to + 1
-        to = Math.min(from + pageSize - 1, total)
-        
-        const response = await this.getProductsAndSkus(from, to)
-        allProducts = { ...allProducts, ...response.data }
-      }
-      
-      return allProducts
     }
   }
