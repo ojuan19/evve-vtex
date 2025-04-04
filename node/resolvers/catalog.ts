@@ -19,78 +19,113 @@ interface ProductSkus {
  */
 const fetchProductAndSkuIds = async (clients: Context['clients']) => {
   console.log("Fetching all product and SKU IDs...");
-  const productSkuMap = await clients.catalogEvve.getAllProductsAndSkuIds();
-  const productIds = Object.keys(productSkuMap).map(id => parseInt(id, 10));
-  console.log(`Retrieved ${productIds.length} product IDs`);
-  return { productSkuMap, productIds };
+  try {
+    const productSkuMap = await clients.catalogEvve.getAllProductsAndSkuIds();
+    const productIds = Object.keys(productSkuMap).map(id => parseInt(id, 10));
+    console.log(`Retrieved ${productIds.length} product IDs`);
+    return { productSkuMap, productIds };
+  } catch (error) {
+    console.error("Error fetching product and SKU IDs:", error);
+    // Return empty data to allow the process to continue
+    return { productSkuMap: {}, productIds: [] };
+  }
 };
 
 /**
  * Fetches detailed information for a single SKU
  */
 const fetchSkuDetails = async (sku: Sku, clients: Context['clients'], accountName: string): Promise<SkuWithInventory> => {
+  // Initialize default values
+  let totalInventory = 0;
+  let costPrice = null;
+  let imageUrls: string[] = [];
+
+  // Fetch inventory data with error handling
   try {
-    // Get inventory data, price data, and images for this SKU concurrently
-    const [inventory, price, images] = await Promise.all([
-      clients.catalogEvve.listInventoryBySku(sku.Id),
-      clients.catalogEvve.getPriceBySku(sku.Id),
-      clients.catalogEvve.getImagesBySku(sku.Id)
-    ]);
-    
-    // Calculate total inventory across all warehouses
-    const totalInventory = inventory.balance.reduce(
+    const inventory = await clients.catalogEvve.listInventoryBySku(sku.Id);
+    totalInventory = inventory.balance.reduce(
       (sum, warehouse) => sum + warehouse.totalQuantity, 
       0
     );
-    
-    // Transform image URLs to the required format
-    const imageUrls = images.map(image => 
+  } catch (error) {
+    console.error(`Error fetching inventory for SKU ${sku.Id}:`, error);
+    // Continue with default inventory value
+  }
+
+  // Fetch price data with error handling
+  try {
+    const price = await clients.catalogEvve.getPriceBySku(sku.Id);
+    costPrice = price ? price.costPrice : null;
+  } catch (error) {
+    console.error(`Error fetching price for SKU ${sku.Id}:`, error);
+    // Continue with default price value
+  }
+
+  // Fetch image data with error handling
+  try {
+    const images = await clients.catalogEvve.getImagesBySku(sku.Id);
+    imageUrls = images.map(image => 
       `https://${accountName}.${image.FileLocation}`
     );
-    
-    return {
-      sku,
-      totalInventory,
-      costPrice: price ? price.costPrice : null,
-      imageUrls
-    };
   } catch (error) {
-    console.error(`Error fetching details for SKU ${sku.Id}:`, error);
-    return {
-      sku,
-      totalInventory: 0,
-      costPrice: null,
-      imageUrls: []
-    };
+    console.error(`Error fetching images for SKU ${sku.Id}:`, error);
+    // Continue with default empty images array
   }
+  
+  return {
+    sku,
+    totalInventory,
+    costPrice,
+    imageUrls
+  };
 };
 
 /**
  * Processes a single product and its SKUs
  */
 const processProduct = async (productId: number, skuIds: number[], clients: Context['clients'], accountName: string): Promise<ProductSkus> => {
+  let productData: Product | null = null;
+  let skusWithInventory: SkuWithInventory[] = [];
+  
+  // Get product data with error handling
   try {
-    // Get product data
-    const productData = await clients.catalogEvve.getProduct(productId);
-    
-    // If there are SKUs, fetch their details
-    let skusWithInventory: SkuWithInventory[] = [];
-    if (skuIds.length > 0) {
+    productData = await clients.catalogEvve.getProduct(productId);
+  } catch (error) {
+    console.error(`Error fetching product data for ${productId}:`, error);
+    // Continue with null product data
+  }
+  
+  // If there are SKUs, fetch their details
+  if (skuIds.length > 0) {
+    try {
       // Get all SKUs for this product
       const skus = await clients.catalogEvve.getSkusByProduct(productId);
       
       // For each SKU, get its details
-      skusWithInventory = await Promise.all(
-        skus.map(sku => fetchSkuDetails(sku, clients, accountName))
-      );
+      // Process each SKU individually so one failure doesn't affect others
+      for (const sku of skus) {
+        try {
+          const skuDetails = await fetchSkuDetails(sku, clients, accountName);
+          skusWithInventory.push(skuDetails);
+        } catch (error) {
+          console.error(`Error processing SKU ${sku.Id}:`, error);
+          // Add SKU with default values
+          skusWithInventory.push({
+            sku,
+            totalInventory: 0,
+            costPrice: null,
+            imageUrls: []
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching SKUs for product ${productId}:`, error);
+      // Continue with empty SKUs array
     }
-    
-    console.log(`Product ${productId}: Found ${skusWithInventory.length} SKUs`);
-    return { productId, productData, skus: skusWithInventory };
-  } catch (error) {
-    console.error(`Error processing product ${productId}:`, error);
-    return { productId, productData: null, skus: [] };
   }
+  
+  console.log(`Product ${productId}: Found ${skusWithInventory.length} SKUs`);
+  return { productId, productData, skus: skusWithInventory };
 };
 
 /**
@@ -201,7 +236,22 @@ export const catalogSync = async (
     // Process products in batches to avoid overwhelming the API
     const batchSize = 10;
     
-    for (let i = 0; i < 10; i += batchSize) {
+    // Process only if we have product IDs
+    if (productIds.length === 0) {
+      console.log("No product IDs found to process");
+      return {
+        success: false,
+        error: "No product IDs found to process",
+        productsProcessed: 0,
+        totalSkus: 0,
+        syncedWithEvve: 0
+      };
+    }
+    
+    // Uncomment for production use
+    // for (let i = 0; i < productIds.length; i += batchSize) {
+    // For testing, limit to first 10 products
+    for (let i = 0; i < Math.min(10, productIds.length); i += batchSize) {
       const batch = productIds.slice(i, i + batchSize);
       console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productIds.length - 1)}`);
       
@@ -222,13 +272,19 @@ export const catalogSync = async (
           try {
             const evveProduct = convertToEvveFormat(productData);
             if (evveProduct) {
-            console.log(`Sending product ${JSON.stringify(evveProduct)} `)
-            //   await clients.evve.saveProductAndVariants(evveProduct);
-              syncedWithEvve.push(productData.productId);
-              console.log(`Successfully synced product ${productData.productId} with Evve`);
+              console.log(`Sending product ${productData.productId} to Evve`);
+              try {
+                await clients.evve.saveProductAndVariants(evveProduct);
+                syncedWithEvve.push(productData.productId);
+                console.log(`Successfully synced product ${productData.productId} with Evve`);
+              } catch (evveError) {
+                console.error(`Error sending product ${productData.productId} to Evve API:`, evveError);
+                // Continue with next product
+              }
             }
           } catch (error) {
-            console.error(`Error syncing product ${productData.productId} with Evve:`, error);
+            console.error(`Error converting product ${productData.productId} to Evve format:`, error);
+            // Continue with next product
           }
         }
       }
