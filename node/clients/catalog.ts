@@ -4,6 +4,42 @@ import {
     IOContext,
   } from "@vtex/api";
   
+  export interface Sku {
+    IsPersisted: boolean;
+    Id: number;
+    ProductId: number;
+    IsActive: boolean;
+    Name: string;
+    Height: number;
+    RealHeight: number;
+    Width: number;
+    RealWidth: number;
+    Length: number;
+    RealLength: number;
+    WeightKg: number;
+    RealWeightKg: number;
+    ModalId: number;
+    RefId: string;
+    CubicWeight: number;
+    IsKit: boolean;
+    InternalNote: string | null;
+    DateUpdated: string;
+    RewardValue: number | null;
+    CommercialConditionId: number;
+    EstimatedDateArrival: string | null;
+    FlagKitItensSellApart: boolean;
+    ManufacturerCode: string | null;
+    ReferenceStockKeepingUnitId: number | null;
+    Position: number;
+    ActivateIfPossible: boolean;
+    MeasurementUnit: string;
+    UnitMultiplier: number;
+    IsInventoried: boolean | null;
+    IsTransported: boolean | null;
+    IsGiftCardRecharge: boolean | null;
+    ModalType: string;
+    isKitOptimized: boolean;
+  }
   
   export class CatalogClient extends ExternalClient {
     constructor(ctx: IOContext, options?: InstanceOptions) {
@@ -23,7 +59,7 @@ import {
           })
     }
 
-    public async getSkusByProduct(id:number): Promise<any>{
+    public async getSkusByProduct(id:number): Promise<Sku[]>{
         return this.http.get(`/api/catalog_system/pvt/sku/stockkeepingunitByProductId/${id}`,{
             metric: "getSkusByProduct",
             headers: {
