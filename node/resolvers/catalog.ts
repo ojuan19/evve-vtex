@@ -1,4 +1,4 @@
-import { Product, Sku, SkuInventory } from "../clients/catalog";
+import { Product, Sku } from "../clients/catalog";
 
 interface SkuWithInventory {
   sku: Sku;

@@ -115,6 +115,17 @@ import {
    
     }
 
+    public async getPriceBySku(id:number){
+        return this.http.get(`/api/pricing/prices/${id}`,{
+            metric: "getPriceBySku",
+            headers: {
+              "X-VTEX-Use-Https": true,
+              "VtexIdclientAutCookie": this.context.adminUserAuthToken
+            },
+          })
+   
+    }
+
     public async getProduct(id:number): Promise<Product>{
         return this.http.get(`/api/catalog/pvt/product/${id}`,{
             metric: "getproduct",
