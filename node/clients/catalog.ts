@@ -64,6 +64,21 @@ import {
     LomadeeCampaignCode: string | null;
     Score: number | null;
   }
+
+  export interface ProductSkuIdsMap {
+    [productId: string]: number[];
+  }
+
+  export interface PaginationRange {
+    total: number;
+    from: number;
+    to: number;
+  }
+
+  export interface ProductAndSkuIdsResponse {
+    data: ProductSkuIdsMap;
+    range: PaginationRange;
+  }
   
   export class CatalogClient extends ExternalClient {
     constructor(ctx: IOContext, options?: InstanceOptions) {
@@ -93,9 +108,9 @@ import {
           })
     }
 
-    public async getProductAndSkuIds(from:number,to:number): Promise<Sku[]>{
+    public async getProductAndSkuIds(from:number,to:number): Promise<ProductAndSkuIdsResponse>{
         return this.http.get(`/api/catalog_system/pvt/products/GetProductAndSkuIds?_from=${from}&_to=${to}`,{
-            metric: "getSkusByProduct",
+            metric: "getProductAndSkuIds",
             headers: {
               "X-VTEX-Use-Https": true,
               "VtexIdclientAutCookie": this.context.adminUserAuthToken
