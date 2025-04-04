@@ -79,6 +79,22 @@ import {
     data: ProductSkuIdsMap;
     range: PaginationRange;
   }
+
+  export interface WarehouseInventory {
+    warehouseId: string;
+    warehouseName: string;
+    totalQuantity: number;
+    reservedQuantity: number;
+    hasUnlimitedQuantity: boolean;
+    timeToRefill: string | null;
+    dateOfSupplyUtc: string | null;
+    leadTime: string;
+  }
+
+  export interface SkuInventory {
+    skuId: string;
+    balance: WarehouseInventory[];
+  }
   
   export class CatalogClient extends ExternalClient {
     constructor(ctx: IOContext, options?: InstanceOptions) {
@@ -88,7 +104,7 @@ import {
         })
       }
 
-    public async listInventoryBySku(id:number){
+    public async listInventoryBySku(id:number): Promise<SkuInventory>{
         return this.http.get(`/api/logistics/pvt/inventory/skus/${id}`,{
             metric: "listInventoryBySku",
             headers: {
