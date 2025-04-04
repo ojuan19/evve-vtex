@@ -27,7 +27,8 @@ export const catalogSync = async (
         // Process products in batches to avoid overwhelming the API
         const batchSize = 10;
         
-        for (let i = 0; i < productIds.length; i += batchSize) {
+        for (let i = 0; i < 10; i += batchSize) {
+            // for (let i = 0; i < productIds.length; i += batchSize) {
             const batch = productIds.slice(i, i + batchSize);
             console.log(`Processing batch ${i/batchSize + 1}, products ${i} to ${Math.min(i + batchSize - 1, productIds.length - 1)}`);
             
@@ -78,6 +79,8 @@ export const catalogSync = async (
         
         // Here you can do additional processing with the SKU data if needed
         // For example, send it to another service or store it
+
+        console.log(`ALL DATA ${JSON.stringify(allProductSkus)}`)
         
     } catch (error) {
         console.error(`Error in catalog sync:`, error);
