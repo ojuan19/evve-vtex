@@ -20,6 +20,36 @@ import {
           ...options,
         })
       }
+
+    public async getProduct(id:number): Promise<any>{
+        return this.http.get(`/api/catalog/pvt/product/${id}`,{
+            metric: "getproduct",
+            headers: {
+              "X-VTEX-Use-Https": true,
+              "VtexIdclientAutCookie": this.context.adminUserAuthToken
+            },
+          })
+    }
+
+    public async getSkusByProduct(id:number): Promise<any>{
+        return this.http.get(`/api/catalog_system/pvt/sku/stockkeepingunitByProductId/${id}`,{
+            metric: "getSkusByProduct",
+            headers: {
+              "X-VTEX-Use-Https": true,
+              "VtexIdclientAutCookie": this.context.adminUserAuthToken
+            },
+          })
+    }
+
+    public async getSku(id:number): Promise<any>{
+        return this.http.get(`/api/catalog/pvt/product/${id}`,{
+            metric: "getproduct",
+            headers: {
+              "X-VTEX-Use-Https": true,
+              "VtexIdclientAutCookie": this.context.adminUserAuthToken
+            },
+          })
+    }
   
     public async getProductsAndSkus(from: number, to: number): Promise<ProductsAndSkusResponse> {
       return this.http.get(`/api/catalog_system/pvt/products/GetProductAndSkuIds?_from=${from}&_to=${to}`, {
