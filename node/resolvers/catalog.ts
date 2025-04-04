@@ -1,9 +1,15 @@
-import { Product, Sku } from "../clients/catalog";
+import { Product, Sku, SkuInventory } from "../clients/catalog";
+
+interface SkuWithInventory {
+  sku: Sku;
+  inventory: SkuInventory | null;
+  totalInventory: number;
+}
 
 interface ProductSkus {
   productId: number;
   productData: Product | null;
-  skus: Sku[];
+  skus: SkuWithInventory[];
 }
 
 export const catalogSync = async (
@@ -43,19 +49,43 @@ export const catalogSync = async (
                         const skuIds = productSkuMap[productId.toString()] || [];
                         
                         // If there are SKUs, fetch their details
-                        let skus: Sku[] = [];
+                        let skusWithInventory: SkuWithInventory[] = [];
                         if (skuIds.length > 0) {
-                            // Option 1: Use existing getSkusByProduct which gets all SKUs at once
-                            skus = await clients.catalogEvve.getSkusByProduct(productId);
+                            // Get all SKUs for this product
+                            const skus = await clients.catalogEvve.getSkusByProduct(productId);
                             
-                            // Option 2: Fetch each SKU individually if needed
-                            // skus = await Promise.all(
-                            //     skuIds.map(skuId => clients.catalogEvve.getSku(skuId))
-                            // );
+                            // For each SKU, get its inventory information
+                            skusWithInventory = await Promise.all(
+                                skus.map(async (sku) => {
+                                    try {
+                                        // Get inventory data for this SKU
+                                        const inventory = await clients.catalogEvve.listInventoryBySku(sku.Id);
+                                        
+                                        // Calculate total inventory across all warehouses
+                                        const totalInventory = inventory.balance.reduce(
+                                            (sum, warehouse) => sum + warehouse.totalQuantity, 
+                                            0
+                                        );
+                                        
+                                        return {
+                                            sku,
+                                            inventory,
+                                            totalInventory
+                                        };
+                                    } catch (error) {
+                                        console.error(`Error fetching inventory for SKU ${sku.Id}:`, error);
+                                        return {
+                                            sku,
+                                            inventory: null,
+                                            totalInventory: 0
+                                        };
+                                    }
+                                })
+                            );
                         }
                         
-                        console.log(`Product ${productId}: Found ${skus.length} SKUs`);
-                        return { productId, productData, skus };
+                        console.log(`Product ${productId}: Found ${skusWithInventory.length} SKUs`);
+                        return { productId, productData, skus: skusWithInventory };
                     } catch (error) {
                         console.error(`Error processing product ${productId}:`, error);
                         return { productId, productData: null, skus: [] };
@@ -69,6 +99,13 @@ export const catalogSync = async (
         
         console.log(`Successfully processed ${allProductSkus.length} products`);
         console.log(`Total SKUs retrieved: ${allProductSkus.reduce((sum, product) => sum + product.skus.length, 0)}`);
+        console.log(`Total inventory across all SKUs: ${allProductSkus.reduce(
+            (sum, product) => sum + product.skus.reduce(
+                (skuSum, skuWithInventory) => skuSum + skuWithInventory.totalInventory, 
+                0
+            ), 
+            0
+        )}`);
         
         // Log some sample product data for verification
         if (allProductSkus.length > 0) {
